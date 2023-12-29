@@ -35,7 +35,7 @@ fn main() {
     println!("Searching logs for job {job_name} in namespace {namespace} containing {keyword}");
     println!("");
 
-    let pod_list = get_pods(job_name.clone(), namespace.clone());
+    let pod_list = get_pods(namespace.clone());
 
     let pod_name = search_for_job(pod_list, job_name);
 
@@ -56,7 +56,7 @@ fn search_for_job(pod_list: Vec<String>, job_name: String) -> String {
     return found_pod;
 }
 
-fn get_pods(job_name: String, namespace: String) -> Vec<String> {
+fn get_pods(namespace: String) -> Vec<String> {
 
     let namespace_arg = format!("--namespace={namespace}");
     let get_pods = Command::new("kubectl")
@@ -96,20 +96,24 @@ fn scan_pod_logs(pod_name: String, namespace: String, keyword: String, number_li
     let result  = format!("{:?}", String::from_utf8(get_logs.stdout).unwrap());
     let mut detect_count = 0;
     let mut error_detected = false;
+    let mut mid_error = false;
 
     for (_, line) in result.split("\\n").enumerate(){
-        if !error_detected && line.contains(&keyword) {
+        if !mid_error && line.contains(&keyword) {
             error_detected = true;
+            mid_error = true;
             println!("{}", "Log Output Detected".red().bold())
         }
 
-        if error_detected {
+        if mid_error {
             println!("{line}");
             detect_count += 1;
         }
 
         if detect_count == number_lines {
-            break
+            println!("");
+            mid_error = false;
+            detect_count = 0;
         }
         
     }
