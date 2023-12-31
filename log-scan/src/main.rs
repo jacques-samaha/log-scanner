@@ -37,12 +37,12 @@ fn main() {
 
     let pod_list = get_pods(namespace.clone());
 
-    let pod_name = search_for_job(pod_list, job_name);
+    let pod_name = search_for_job(pod_list, job_name).unwrap();
 
     scan_pod_logs(pod_name, namespace, keyword, number_lines)
 }
 
-fn search_for_job(pod_list: Vec<String>, job_name: String) -> String {
+fn search_for_job(pod_list: Vec<String>, job_name: String) -> Result<String, String>  {
     let mut found_pod = String::from("");
     let mut name = String::from("");
     for pod in pod_list {
@@ -53,7 +53,7 @@ fn search_for_job(pod_list: Vec<String>, job_name: String) -> String {
         }
     }
 
-    return found_pod;
+    return Ok(found_pod);
 }
 
 fn get_pods(namespace: String) -> Vec<String> {
